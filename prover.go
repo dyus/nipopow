@@ -1,20 +1,29 @@
 package main
 
+import "math/big"
+
 const (
-	k = 6
-	m = 6
+	k     = 6
+	m     = 6
+	delta = 0.5
 )
 
-func IsHaveSuperchainQuality(superchain *Chain, alpha []Block, level int) bool {
+func IsLocallyGoodSuperchain(chain *Chain, alpha []Block, level int) bool {
+	powered := big.Int{}.Exp(big.NewInt(int64(2)), big.NewInt(int64(level)), nil)
+	right := big.Float{}.Quo(big.NewFloat(float64((1-delta)*float64(len(chain.blocks)))), big.Float{}.SetInt(powered))
+	return big.NewFloat(float64(len(alpha))).Cmp(right) > 0
+}
+
+func IsHaveSuperchainQuality(chain *Chain, alpha []Block, level int) bool {
 	return false
 }
 
-func IsHaveMultilevelQuality(superchain *Chain, alpha []Block, level int) bool {
+func IsHaveMultilevelQuality(chain *Chain, alpha []Block, level int) bool {
 	return false
 }
 
-func IsGoodSuperchain(superchain *Chain, alpha []Block, level int) bool {
-	return IsHaveSuperchainQuality(superchain, alpha, level) && IsHaveMultilevelQuality(superchain, alpha, level)
+func IsGoodSuperchain(chain *Chain, alpha []Block, level int) bool {
+	return IsHaveSuperchainQuality(chain, alpha, level) && IsHaveMultilevelQuality(chain, alpha, level)
 }
 
 func Prove(chain *Chain) ([]Block, []Block) {
