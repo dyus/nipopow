@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"net/http"
+	"sync"
 	"time"
 )
 
 const (
-	HOST = "http://88.198.13.202:9051"
+	Host                = "http://88.198.13.202:9051"
+	UrlParallelRequests = 20
 )
 
 func main() {
@@ -28,14 +30,24 @@ func main() {
 		panic(err)
 	}
 
-	blocks := make([]Block, 0)
-	for i := 0; i < len(resp.BlocksIds); i++ {
-		block, err := ergoNodeClient.GetBlock(string(resp.BlocksIds[i]))
-		if err != nil {
-			panic(err)
-		}
-		blocks = append(blocks, *block)
+	blocks := make([]Block, len(resp.BlocksIds))
+	wg := &sync.WaitGroup{}
+	semaphore := make(chan interface{}, UrlParallelRequests)
+
+	for i, blockId := range resp.BlocksIds {
+		wg.Add(1)
+		go func(i int, blockId BlockId) {
+			defer wg.Done()
+			semaphore <- struct{}{}
+			block, err := ergoNodeClient.GetBlock(string(blockId))
+			if err != nil {
+				panic(err)
+			}
+			blocks[i] = *block
+			<-semaphore
+		}(i, blockId)
 	}
+	wg.Wait()
 	proofs, lastBlocks := Prove(&Chain{blocks})
 	fmt.Println("================================================================")
 	fmt.Println("Proofs:")
@@ -59,7 +71,7 @@ func initializeClient() *ErgoNodeClient {
 	logger := zapLogger.Sugar().With(zap.String("logger", "ErgoNodeClient"))
 
 	client := ErgoNodeClient{
-		URL:    HOST,
+		URL:    Host,
 		Logger: logger,
 		Client: &httpClient,
 	}

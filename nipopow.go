@@ -22,9 +22,9 @@ func IsValidInterlink(blocks []Block) bool {
 		return false
 	}
 
-	for i := len(blocks) - 1; i > 1 ; i-- {
+	for i := len(blocks) - 1; i > 1; i-- {
 		blockInterlinks := blocks[i].Header.Interlinks
-		if blockInterlinks[len(blockInterlinks) - 1] != blocks[i-1].Header.Id {
+		if blockInterlinks[len(blockInterlinks)-1] != blocks[i-1].Header.Id {
 			return false
 		}
 		logger.Info("Block %s has valid interlink", blocks[i].Header.Id)
