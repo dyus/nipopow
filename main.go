@@ -37,13 +37,15 @@ func main() {
 		blocks = append(blocks, *block)
 	}
 	proofs, lastBlocks := Prove(&Chain{blocks})
+	fmt.Println("================================================================")
 	fmt.Println("Proofs:")
 	for _, proof := range proofs {
-		fmt.Printf("%+v\n", proof)
+		fmt.Printf("%+v\n", proof.Header)
 	}
+	fmt.Println("================================================================")
 	fmt.Println("LastBlocks:")
 	for _, lastBlock := range lastBlocks {
-		fmt.Printf("%+v\n", lastBlock)
+		fmt.Printf("%+v\n", lastBlock.Header)
 	}
 
 	//verified, proofs := Verify(proofs, lastBlocks)
