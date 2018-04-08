@@ -51,7 +51,7 @@ func IsHaveSuperchainQuality(chain *Chain, alpha []Block, level int) bool {
 				checkChain = append(checkChain, block)
 			}
 
-			reversedBlock := checkChain[len(checkChain)-1-i]
+			reversedBlock := chainSlice[len(chainSlice)-1-i]
 			if reversedBlock.GetLevel() >= level {
 				reversedCheckChain = append(reversedCheckChain, reversedBlock)
 			}

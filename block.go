@@ -1,7 +1,7 @@
 package main
 
 import (
-	"math/big"
+	"fmt"
 )
 
 type BlockId string
@@ -35,22 +35,10 @@ type Block struct {
 }
 
 func (b *Block) GetLevel() int {
-	T := b.Header.Difficulty
 	// TODO change type after read from server
 	idInt, err := DecodeToBig([]byte(b.Header.Id))
 	if err != nil {
 		panic(err)
 	}
-	// TODO normal big math division Log2?
-	level := 0
-	id := new(big.Float).SetInt(idInt)
-	TFloat := big.NewFloat(float64(T))
-	for id.Cmp(TFloat) <= 0 {
-		level++
-		id = new(big.Float).Mul(id, big.NewFloat(float64(2)))
-	}
-	if level > 0 {
-		level--
-	}
-	return level
+	return 256 - len(fmt.Sprintf("%b", idInt))
 }

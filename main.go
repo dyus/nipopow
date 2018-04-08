@@ -23,7 +23,7 @@ func main() {
 	//	panic(err)
 	//}
 	//fmt.Printf("%b\n", decoded)
-	resp, err := ergoNodeClient.GetBlocks(&GetBlocksRequest{Limit: 50, Offset: 1000})
+	resp, err := ergoNodeClient.GetBlocks(&GetBlocksRequest{Limit: 50, Offset: 0})
 	if err != nil {
 		panic(err)
 	}
