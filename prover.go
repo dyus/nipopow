@@ -12,7 +12,7 @@ const (
 	delta = 0.5
 )
 
-var logger *zap.SugaredLogger
+var proverLogger *zap.SugaredLogger
 
 func init() {
 	zapLogger, _ := zap.NewProduction()
