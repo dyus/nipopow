@@ -1,6 +1,16 @@
 package main
 
+import "go.uber.org/zap"
+
 const genesisId = "5CBFsnFA67379N8Em59skSQUwDuK3VHoeCZ92DPWaPd7"
+
+var logger *zap.SugaredLogger
+
+func init() {
+	zapLogger, _ := zap.NewProduction()
+	defer zapLogger.Sync() // flushes buffer, if any
+	logger = zapLogger.Sugar().With(zap.String("logger", "ErgoNodeClient"))
+}
 
 type Chain struct {
 	blocks []Block
@@ -17,6 +27,7 @@ func IsValidInterlink(blocks []Block) bool {
 		if blockInterlinks[len(blockInterlinks) - 1] != blocks[i-1].Header.Id {
 			return false
 		}
+		logger.Info("Block %s has valid interlink", blocks[i].Header.Id)
 	}
 
 	return true
@@ -37,6 +48,7 @@ func IsValidChain(proofs []Block, lastBlocks []Block) bool {
 
 // точка входа
 func Verify(proofs []Block, lastBlocks []Block) (bool, []Block) {
+	logger.Info("Getting genesis block...")
 	ergoNodeClient := initializeClient()
 	genesisBlock, err := ergoNodeClient.GetBlock(genesisId)
 	if err != nil {
@@ -46,8 +58,13 @@ func Verify(proofs []Block, lastBlocks []Block) (bool, []Block) {
 	proofsChecked := make([]Block, 0)
 	proofsChecked = append(proofsChecked, *genesisBlock)
 
+	logger.Info("Start validating proofs and last blocks...")
+
 	if IsValidChain(proofs, lastBlocks) {
 		proofsChecked = proofs
+
+		logger.Info("Chain is valid")
+
 		return true, proofsChecked
 	}
 
