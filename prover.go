@@ -101,6 +101,5 @@ func Prove(chain *Chain) ([]Block, []Block) {
 		}
 	}
 	lastBlocks := chain.blocks[len(chain.blocks)-k:]
-
 	return proofs, lastBlocks
 }

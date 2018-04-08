@@ -37,14 +37,16 @@ func main() {
 		blocks = append(blocks, *block)
 	}
 	proofs, lastBlocks := Prove(&Chain{blocks})
-
-	verified, proofs := Verify(proofs, lastBlocks)
-
-	if verified {
-		fmt.Println("success")
-	} else {
-		fmt.Println("failure")
+	fmt.Println("Proofs:")
+	for _, proof := range proofs {
+		fmt.Printf("%+v\n", proof)
 	}
+	fmt.Println("LastBlocks:")
+	for _, lastBlock := range lastBlocks {
+		fmt.Printf("%+v\n", lastBlock)
+	}
+
+	//verified, proofs := Verify(proofs, lastBlocks)
 }
 
 func initializeClient() *ErgoNodeClient {
