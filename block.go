@@ -49,7 +49,8 @@ func (b *Block) GetLevel() int {
 		level++
 		id = new(big.Float).Mul(id, big.NewFloat(float64(2)))
 	}
-	level--
-
+	if level > 0 {
+		level--
+	}
 	return level
 }

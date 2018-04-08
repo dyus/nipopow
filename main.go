@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
-	"fmt"
 )
 
 const (
@@ -23,7 +23,7 @@ func main() {
 	//	panic(err)
 	//}
 	//fmt.Printf("%b\n", decoded)
-	resp, err := ergoNodeClient.GetBlocks(&GetBlocksRequest{Limit: 50})
+	resp, err := ergoNodeClient.GetBlocks(&GetBlocksRequest{Limit: 50, Offset: 1000})
 	if err != nil {
 		panic(err)
 	}

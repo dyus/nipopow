@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go.uber.org/zap"
 	"math"
 	"math/big"
 )
@@ -10,6 +11,14 @@ const (
 	m     = 6
 	delta = 0.5
 )
+
+var logger *zap.SugaredLogger
+
+func init() {
+	zapLogger, _ := zap.NewProduction()
+	defer zapLogger.Sync() // flushes buffer, if any
+	logger = zapLogger.Sugar().With(zap.String("logger", "Prover"))
+}
 
 func IsLocallyGoodSuperchain(chain []Block, alpha []Block, level int) bool {
 	powered := big.NewInt(int64(2))
@@ -62,7 +71,7 @@ func IsHaveMultilevelQuality(chain *Chain, alpha []Block, level int) bool {
 		filteredByLevelSCount := len(*filterByLevel(chain.blocks, levelS))
 		if filteredByLevelSCount >= k1 {
 			if float64(len(*filterByLevel(chain.blocks, level))) < (1-delta)*float64(filteredByLevelSCount)*math.Pow(2, float64(level-levelS)) {
-
+				return false
 			}
 		}
 	}
