@@ -1,8 +1,10 @@
 package main
 
 import (
-	"go.uber.org/zap"
 	"fmt"
+	"go.uber.org/zap"
+	"net/http"
+	"time"
 )
 
 const (
@@ -10,18 +12,30 @@ const (
 )
 
 func main() {
-	client := initializeClient()
-	resp, err := client.GetBlocks(&GetBlocksRequest{Offset: 10000})
+	ergoNodeClient := initializeClient()
+	//resp, err := ergoNodeClient.GetBlocks(&GetBlocksRequest{Offset: 10000})
+	resp, err := ergoNodeClient.GetBlock("Vumq5gex8Ty3TuAk8Xxxc9UmRgRd64pnRxvV3PM7Q4Q")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%s", resp)
+	decoded, err := DecodeToBig([]byte(resp.Header.Id))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%b\n", decoded)
 }
 
 func initializeClient() *ErgoNodeClient {
+	httpClient := http.Client{Timeout: time.Second}
+
 	zapLogger, _ := zap.NewProduction()
 	defer zapLogger.Sync() // flushes buffer, if any
 	logger := zapLogger.Sugar().With(zap.String("logger", "ErgoNodeClient"))
-	client := ErgoNodeClient{URL: HOST, Logger: logger}
+
+	client := ErgoNodeClient{
+		URL:    HOST,
+		Logger: logger,
+		Client: &httpClient,
+	}
 	return &client
 }

@@ -1,36 +1,33 @@
 package main
 
 import (
-	"net/http"
-	"time"
-	"errors"
-	"strconv"
 	"encoding/json"
-	"net/url"
-	"io/ioutil"
+	"errors"
 	"go.uber.org/zap"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strconv"
 )
 
 var (
-	client = &http.Client{Timeout: time.Second}
 	invalidJsonError = errors.New("invalid JSON")
 )
 
 type ErgoNodeClient struct {
 	Logger  *zap.SugaredLogger
 	URL     string
+	Client  *http.Client
 	Timeout int
 }
-
-type Block string
 
 type GetBlocksRequest struct {
 	Limit  int
 	Offset int
 }
 
-type GetBlocksSucessResponse struct {
-	Blocks []Block
+type GetBlocksSuccessResponse struct {
+	BlocksIds []BlockId
 }
 
 func (enc *ErgoNodeClient) fetch(requestUrl string, body []byte) (*http.Response, error) {
@@ -40,7 +37,7 @@ func (enc *ErgoNodeClient) fetch(requestUrl string, body []byte) (*http.Response
 		enc.Logger.Errorf("got error at request create %s", err)
 		return nil, err
 	}
-	resp, err := client.Do(req)
+	resp, err := enc.Client.Do(req)
 	if err != nil {
 		enc.Logger.Errorf("got error response %s", err)
 		return nil, err
@@ -48,7 +45,7 @@ func (enc *ErgoNodeClient) fetch(requestUrl string, body []byte) (*http.Response
 	return resp, err
 }
 
-func (enc *ErgoNodeClient) GetBlocks(req *GetBlocksRequest) (*GetBlocksSucessResponse, error) {
+func (enc *ErgoNodeClient) GetBlocks(req *GetBlocksRequest) (*GetBlocksSuccessResponse, error) {
 	queryParams := url.Values{}
 	if req.Limit != 0 {
 		queryParams.Add("limit", strconv.Itoa(req.Limit))
@@ -71,20 +68,47 @@ func (enc *ErgoNodeClient) GetBlocks(req *GetBlocksRequest) (*GetBlocksSucessRes
 	if err != nil {
 		panic(err)
 	}
-	//fmt.Println(string(data))
 	switch resp.StatusCode {
 	case http.StatusOK:
-		blocks := make([]Block, 0, 0)
+		blocks := make([]BlockId, 0, 0)
 		err := json.Unmarshal(data, &blocks)
 		if err != nil {
 			enc.Logger.Errorf("got error at JSON unmarshal: err=%s", err)
 			return nil, invalidJsonError
 		}
 		enc.Logger.Infof("got %d blocks", len(blocks))
-		getBlocksResponse := GetBlocksSucessResponse{Blocks: blocks}
+		getBlocksResponse := GetBlocksSuccessResponse{BlocksIds: blocks}
 		return &getBlocksResponse, nil
 	default:
-		enc.Logger.Infof("got err='%s', responseCode=%d", err, resp.StatusCode)
+		enc.Logger.Infof("got err='%s', responseCode=%d", string(data), resp.StatusCode)
 		return nil, errors.New(string(data))
+	}
+}
+
+func (enc *ErgoNodeClient) GetBlock(headerId string) (*Block, error) {
+	requestUrl := enc.URL + "/blocks/" + headerId
+	resp, err := enc.fetch(requestUrl, nil)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	switch resp.StatusCode {
+	case http.StatusOK:
+		block := &Block{}
+		err := json.Unmarshal(data, &block)
+		if err != nil {
+			enc.Logger.Errorf("got error at JSON unmarshal: err=%s", err)
+			return nil, invalidJsonError
+		}
+		enc.Logger.Infof("got block %+v", block)
+		return block, nil
+	default:
+		errString := string(data)
+		enc.Logger.Infof("got err='%v', responseCode=%d", errString, resp.StatusCode)
+		return nil, errors.New(errString)
 	}
 }
