@@ -15,11 +15,11 @@ func IsLocallyGoodSuperchain(chain *Chain, alpha []Block, level int) bool {
 }
 
 func IsHaveSuperchainQuality(chain *Chain, alpha []Block, level int) bool {
-	return false
+	return true
 }
 
 func IsHaveMultilevelQuality(chain *Chain, alpha []Block, level int) bool {
-	return false
+	return true
 }
 
 func IsGoodSuperchain(chain *Chain, alpha []Block, level int) bool {
